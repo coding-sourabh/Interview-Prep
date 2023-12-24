@@ -1,0 +1,18 @@
+-> An Enterprise Application is a software application that helps enterprises in managing their business-related activities. They are large and complex and solve business-related problems to fulfill the needs of the enterprises.
+
+Different layers of enterprise application :
+Client Tier:
+Acts as an interface to the end-user. 
+
+Presentation Tier:
+This tier links the business logic of the application and the end user. It also takes care of displaying dynamic content to the end-user and accepting various inputs from the user. spring rest can be a example of presentation tier.
+
+Business Tier:
+This tier represents the complete business logic and requirements of the application. All the main functionalities, like data validations and data manipulations lie in this tier of the application.
+
+Persistence Tier:
+This acts as a go-between for the business tier and the database. It gets the requirements from the business tier, and based on it accesses data from the database.
+
+-> How java program works :
+
+we have our source code i.e .java file -> it goes through java compiler and a .class file is generated which is a byte code
