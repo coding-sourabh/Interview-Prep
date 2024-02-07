@@ -1,0 +1,41 @@
+This is a question based on bucket sort Algorithm : 
+Given a string s, sort it in decreasing order based on the frequency of the characters. The frequency of a character is the number of times it appears in the string.
+Return the sorted string. If there are multiple answers, return any of them.
+
+Example 1:
+Input: s = "tree"
+Output: "eert"
+Example 2:
+Input: s = "cccaaa"
+Output: "aaaccc"
+
+This problem can solved by Bucket Sort Algorithm.
+-> This algo first of all count the frequency of each character.
+-> Now max frequency of any character can only be max size of input string given to us.
+-> We can create Bucket of size size of string and put characters in the nth bucket where n is the 
+   frequency of the characer. so if character have 3 freq, then it will be put into 3rd bucket.
+-> Now we can build our answer starting from the largest bucket.
+
+Code :
+    string frequencySort(string s) {
+        string ans = "";
+        unordered_map<char, int> freq;
+        vector<vector<char>> bucket(s.size() + 1);
+        
+        for(auto &ch: s)
+            freq[ch]++;
+        
+        for(auto &it: freq) 
+            bucket[it.second].push_back(it.first);
+        
+        for(int i = bucket.size() - 1; i > 0; i--) {
+            for(int j = 0; j < bucket[i].size(); j++) {
+                string temp(i, bucket[i][j]);
+                ans += temp;
+            }
+        }
+        return ans;   
+    }
+
+Time Complexity : O(n)
+Space : O(n)
