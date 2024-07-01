@@ -1,0 +1,319 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\froman\fcharset0 Times-Roman;\f2\froman\fcharset0 Times-Italic;
+\f3\froman\fcharset0 Times-Bold;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red194\green229\blue166;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c80097\c91038\c70905;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\paperw11900\paperh16840\margl1440\margr1440\vieww30040\viewh18900\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 SYSTEM DESIGN NOTES (BOOK)\
+\
+Nowadays applications are data intensive and not compute intensive. Major concern is how manage complex large amount of data.\
+A data intensive application is build which have common functionality such as : \
+-> A data store such that other application can find it again. (DATABASES)\
+-> Remembering the result of expensive operations, to speed up reads. (CACHES)\
+-> Allow users to search data by keywords or filter in various ways (SEARCH INDEXES)\
+-> Send a message to another process, to be handled async (Stream Processing)\
+-> Periodically crunch a large of amount of accumulated data (Batch Processing)\
+\
+In Data systems there are some core components which we want to take care mainly : \
+1. Reliability : The System should continue to work correctly (i.e performing correct functions at desired level of performance) even when adverse conditions occurs \
+                       Such as hardware or software faults or human error etc.\
+\
+2. Scalability : As the System grows (in data volume, traffic or complexity) there should be reasonable ways to deal with the growth.\
+\
+3. Maintainability : Over the period of time many people will work on the system( people from engineering or operations both maintaining current behaviour and \
+                               Adapting to new changes as well) and they should be able to work it on productively with time.\
+\
+\
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+\
+                                                                                                       RELIABILITY\
+\
+In general terms it means system should do well even when something bad happens, it should be fault tolerant. We can\'92t prevent every fault in the world but we \
+Try to make our system as much resilient as possible. There are some factors which we can make our system un-reliable and has to be dealt with :\
+\
+-> Hardware Failures : One Reason for our system not being reliable can be some hardware failures are happening, for ex : Disk Failures, Faulty RAMs, Power Blackout,\
+                                     Wrong network cable plugging, there can be various reasons for this. One way we solve this problem is using redundancy. That is \
+                                     Having multiple disks, power backup, basically a redundant component which can take original one\'92s place if something wrong happens.\
+\
+-> Software Failures : We usually think of hardware failures as random and independent from each other : one machine disk failing does not imply that other disk is also\
+			   going to fail. These cascading failures or multiple failures on hardware are rare. But there can be systematic error within the system. Such faults \
+ 		   	   are harder to anticipate because they are correlated across nodes and can cause many more failures. One bug can make one node corrupt and\
+			   other nodes may depend on that node and thus cascading failure may happen. There is no quick solution for this you have to think about logics,\
+			   assumptions being taken by the system, through testing, isolating and testing system etc etc.\
+\
+-> Human Errors :  Humans designs systems and it is human who runs them too. And we all know humans can make mistakes and can make a lot. So we have to build\
+		         the system in such a way that it is less prone to human error for ex: well designed APIs, admin interfaces make it easy to do the \'93right thing\'94 and\
+		         discourage the \'93wrong behaviour\'94.
+\f1\fs29\fsmilli14667 \cf2 	\expnd0\expndtw0\kerning0
+However, if the interfaces are too restrictive people will work around them, negating their benefit, so \
+		        this is a tricky balance to get right. Decoupling the system components whenever required, through testing in isolated environments.\
+		        Allow easy recover	y from human errors to minimize the impact of human error. Fast Roll back, pushing new code gradually so that\
+		        small subset of code affects less system and will easy to debug. Monitoring and metrics can help in identifying issues early.\
+ \uc0\u8232 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+
+\f1\fs29\fsmilli14667 \cf2 \expnd0\expndtw0\kerning0
+\
+                                 						SCALABILITY\
+\
+System is working correctly does not mean it will keep on working correctly in future also. With increase in load like concurrent users going from 1 \
+To 100 million might degrade our system. So on scalability we should think like \'93If the system grows in a particular way, what are the options for \
+Coping with the growth ?\'94 And \'93how can we add computing resources to handle addition load ?\'94\
+\
+Describing Load : Loads can be described with few numbers which we call load parameters. The best choice of parameters depends on the type of architecture\
+                              It can be request per second served to the web server, the ratio of reads to write in a DB, the numbers of simultaneous active users \
+			 in a chat room, the hit ratio on a cache etc.\
+\
+Describing Performance : Once we have described the load, we can now investigate what will happen when load increases. There are two ways to look into it.\
+				  -> When we increase our load parameter and keep system resources(CPU, Memory, Bandwidth etc) unchanged, how performance\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8505\pardirnatural\partightenfactor0
+\cf2                                               of system affected.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2                                          -> when we increase the load, how much do you need to increase the resources so that performance remains unchanged.\
+\
+Coping with Load : People ofter dichotomy between horizontal and vertical scaling up, In horizontal scaling we increase the no. of resources and distribute \
+			   load, whereas in vertical scaling we increase the power of existing system. Working on a single machine is comparatively easier\
+			   but after a certain limit, it can be way costlier. Generally in reality we often see mixture of both, where multiple machine which are\
+			   reasonably fast are worked upon together to meet the load.\
+ 			   Some systems are elastic meaning they can increase or decrease the computing resources according to load change, whereas in some\
+		             system it is done manually. An elastic system can be useful if load is highly unpredictable, but manually scaled systems are simpler\
+                                and may have fewer operational surprises.\
+			   Keep in mind that, there is no specific formula that after that much load or complexity we should distribute our system in this way.\
+			   It depends on which type of load, which type of operations are most common etc. \
+\
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+
+\f1\fs29\fsmilli14667 \cf2 \expnd0\expndtw0\kerning0
+\
+									             MAINTAINABILITY\
+\
+Majority of the cost of software is not in its initial dev. Stage but it is in its ongoing maintenance like fixing bugs, keeping it operational, adapting to new\
+Platforms, modifying for new use cases, adding features etc. In future we don\'92t want to face a situation where we have a legacy code where most of things\
+Are outdated and non-operational. So we will pay particular attention to three design principles for software systems: \
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f2\i \cf2 Operability : 
+\f1\i0 Make it easy for operations teams to keep the system running smoothly. 
+\fs24 \
+
+\fs29\fsmilli14667 Operations teams are vital to keeping a software system running smoothly. A good operations team typically is responsible for the following, and more :
+\fs24 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa293\partightenfactor0
+\ls1\ilvl0
+\fs29\fsmilli14667 \cf2 \kerning1\expnd0\expndtw0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+Monitoring the health of the system and quickly restoring service if it goes into a bad state.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+Tracking down the cause of problems, such as system failures or degraded performance \
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+Keeping software and platforms up to date, including security patches \
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+Keeping tabs on how different systems affect each other, so that a problematic change can be avoided before it causes damage \uc0\u8232 and many more.\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f2\i \cf2 Simplicity :  
+\f1\i0 Make it easy for new engineers to understand the system, by removing as much complexity as possible from the system. \
+
+\fs24 \
+
+\f2\i\fs29\fsmilli14667 Evolvability 
+\f1\i0\fs24 : 
+\fs29\fsmilli14667 Make it easy for engineers to make changes to the system in the future, adapting it for unanticipated use cases as requirements change. \
+Also known as 
+\f2\i extensibility
+\f1\i0 , 
+\f2\i modifiability
+\f1\i0 , or 
+\f2\i plasticity
+\f1\i0 . \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 \
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX										\
+								RELATIONAL MODEL VS DOCUMENT MODEL\
+\
+In 1970s SQL Model appeared and dominated over 30-40 years, in-between many other models like hierarchical and object model came but vanished quickly. In around 2010s\
+NoSQL model came into existence and was adopted due to \
+-> A need for greater scalability than relational databases including very large datasets or very high write throughput.\
+-> A preference for free and open source software over commercial database products.\
+
+\f1\fs29\fsmilli14667 \cf2 \expnd0\expndtw0\kerning0
+-> Specialized query operations that were not supported by relational model.\
+-> Desire for dynamic and expressive data model\
+\
+Relational DB are better in handling relationships such as many-to-many and one-to-many, they can simply put reference of other entities in terms of ids\
+And can do joins and foreign reference and handle it efficiently.\
+Whereas these kinds of operations are either not possible or very costly in non-relational DB, So if \cb3 data is not so much dynamic and closely \
+coupled then it would be better to go with relational DB.\cb1 \
+\
+-> The main argument in favour of document data model are schema flexibility, better performance due to locality, and customised data structures \
+According to the application needs. But Relational model counters it by providing better support for joins, many to many and many to one relationships.\
+\
+-> If the data in our application has \cb3 document like structure\cb1 (like that linked-in profile example: i.e., a tree of one-to- many relationships, where typically the entire tree is\
+ loaded at once ) then its a good idea to use a document model. The relational technique of 
+\f2\i shredding
+\f1\i0 \'97 splitting a document-like structure into multiple tables \
+(like 
+\fs26\fsmilli13333 positions
+\fs29\fsmilli14667 , 
+\fs26\fsmilli13333 education
+\fs29\fsmilli14667 , and 
+\fs26\fsmilli13333 contact_info
+\fs29\fsmilli14667 )\'97can lead to cumbersome schemas and unnecessarily complicated application code. \
+\
+-> When we have future changes in schema then document based model is more likeable choice before it can accommodate changes very easily, you can\
+Simply put new data in new format and it won\'92t complain. But in relational model you have specific format for storing and retrieving data. When writing\
+Into relational table a predetermined schema is there. And if requirements changes then table has to be altered and can result in downtime. \
+\
+-> Data locality of queries is also very important factor, when you want to retrieve a complete document at once like rendering a website then, it makes \
+More sense to use non-relational db, rather than putting tables together and grouping all data for retrieval. The locality advantage only applies if you \
+need large parts of the document at the same time. The database typically needs to load the entire document, even if you access only a small portion\
+of it, which can be wasteful on large documents. On updates to a document, the entire document usually needs to be rewritten\'97only modifications\
+that don\'92t change the encoded size of a document can easily be performed in place. For these reasons, it is generally recommended that you keep \
+documents fairly small and avoid writes that increase the size of a document \
+\
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX									\
+								
+\f3\b\fs50\fsmilli25333 \cf2 \expnd0\expndtw0\kerning0
+Graph-Like Data Models 
+\f1\b0\fs24 \
+
+\fs29\fsmilli14667 \
+If application has mostly one to many relationship or no relationship between records then document model is appropriate but if applications has \cb3 many-to-many\
+Relations very common.\cb1  The relational model can handle simple cases of many-to-many relationships, but as the connections within your data become \
+more complex, it becomes more natural to start modelling your data as a graph. \
+A graph consists of two kinds of objects: 
+\f2\i vertices 
+\f1\i0 (also known as 
+\f2\i nodes 
+\f1\i0 or 
+\f2\i entities
+\f1\i0 ) and 
+\f2\i edges 
+\f1\i0 (also known as 
+\f2\i relationships 
+\f1\i0 or 
+\f2\i arcs
+\f1\i0 ) 
+\fs24 \
+\
+
+\fs29\fsmilli14667 There are three declarative query languages for graph : Cypher, SPARQL, and Datalog \
+\
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 \
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+\f1 \cf2 \expnd0\expndtw0\kerning0
+\
+
+\f0 \cf0 \kerning1\expnd0\expndtw0 \
+\
+\
+								
+\f3\b\fs50\fsmilli25333 \cf2 \expnd0\expndtw0\kerning0
+Storage and Retrievals
+\f0\b0\fs24 \cf0 \kerning1\expnd0\expndtw0 \
+\
+\
+We don\'92t need to know how all the storage engine are build piece to piece, but to understand which one you need for your application or how to tune it so it works best for\
+Your kind of data load, we should have rough idea about all these storage engines and they\'92re working under the hood.\
+\
+Indexes : To speed up read we use indexing on DB, its kind of a index of book in the form of some metadata which helps in identifying the actual record quickly, but the \
+Tradeoff is that whenever we introduce indexing the write operation also slows down because we are not just simple appending data but according to indexes we have to \
+Now add or data. So, we need to choose suitable indexes for our DB which aligns to our required queries.\
+\
+								DATA STRUCTURES THAT POWERS OUR DB\
+\
+HASH INDEXES : \
+We can hash offset to read quickly from DB.\
+For ex : let\'92s say we have a DB which stores data by simply appending to the last in the file, now we are storing the data in the form of key value pairs.\
+So, if we are just appending key value pairs one by one(without any space or newline), we can hash the keys and store offset with corresponding key.\
+So if we require the value of some \'92x\'92 key, then we can simply look into our hash and see the offset and we can know from where the record start and we can read it.\
+We can merge the records overtime to remove duplicates and values which are expired and have new values.\
+\
+But this look simple but works well, but in real world scenario, we may face some issues like : \
+File format (There are different file formats that we save), Deleting Records, Crash Recovery, Partially written records, concurrent control.\
+\
+\
+SSTables  and  LSM -Trees \
+-> We can make simple changes to format of our segment files : We require the sequence of key-value pair sorted by key. This format is SORTED STRING TABLE.\
+-> After merging also we should only have 1 key for a segment not duplicates. Merging of segment uses similar technique like merge sort, put all pointers on start of \
+Each segment and pick the smallest one among all segment pointers and move forward the pointer from the segment where value is fetched.\
+-> To find a particular value we don\'92t need to store offset of all the keys, but for a block of data we can store a key, then once we find that block we can find the data \
+Inside that block. This makes our stored key table sparse.\
+\
+Constructing and maintaining SSTables\
+We can use RB-Tress or AVL Tress to insert record and read in sorted order.\
+We can make our storage engine work as follows : \
+-> When a write comes in add it to in-memory balanced tree data structure(AVL or RB Trees). This in-memory is sometimes called as  memtable.\
+-> when the memtable gets bigger than some threshold we can store, we can write to disk as SSTable File.\
+-> In order to fulfil a read request first try to find the key in the memtable, then in the most recent on disk-segment, then int the next-older segment. \
+-> From time to time run a merging run a merging and compaction process, in the background to combine segment files to remove duplicate and deleted files.\
+\
+It only has one drawback that if DB crashes then, it can lost current changes so, to fix it we can maintain a simple log file, which instantly append into hard disk, and is only\
+Purpose is to restore the segment.\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\fs29\fsmilli14667 \cf2 \expnd0\expndtw0\kerning0
+Storage engines that are based on this principle of merging and compacting sorted files are often called LSM( Log Structured Merge ) storage engines. 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 Performance Optimizations : LSM tree can be slow when key does not exist, because it have to go deep level into every segment according to time added to ensure\
+That this record does not exists.In  order to optimise this, storage engines often uses bloom filters.\
+Bloom Filters : A bloom filter is a memory efficient data structure for approximating the contents of a set. It can tell if a key does not exist in the database and saves\
+Many unnecessary calls.\
+There are also strategies to determine the order and timing of how SSTables are compacted and merged. The most common are size-tiered (newer and smaller SSTables are\
+Successively merged into older and larger SSTables) \
+and levelled compaction (
+\f1\fs29\fsmilli14667 \cf2 \expnd0\expndtw0\kerning0
+In leveled compaction, the key range is split up into smaller SSTables and older data is moved into separate \'93levels,\'94 which allows \
+the compaction to proceed more incrementally and use less disk space
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 )\
+\
+										B-TREES\
+B-Trees have stood the test of time very well. They remain the standard index implementation in almost all relational databases and some non-relational DB uses them too.\
+Like SS-Tables B-Tree keep key-value pair for pairs sorted by key , which allows efficient key-value look ups and range queries. B-Trees break the database down into\
+Fixed size blocks or pages, 
+\f1\fs29\fsmilli14667 \cf2 \expnd0\expndtw0\kerning0
+traditionally 4 KB in size (sometimes bigger), and read or write one page at a time. \
+Each page can be identified using an address, or location, which allows one page to refer to other page, similar to pointer but on disk not memory.\
+
+\fs24 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0 \cf0 \kerning1\expnd0\expndtw0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+\
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+\
+\
+\
+\
+\
+\
+ }

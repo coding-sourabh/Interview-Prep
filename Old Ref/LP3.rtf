@@ -1,0 +1,27 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;\f1\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red29\green86\blue133;\red255\green255\blue255;
+}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c13725\c41569\c59216;\cssrgb\c100000\c100000\c100000;
+}
+\paperw11900\paperh16840\margl1440\margr1440\vieww30040\viewh18900\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs34 \cf2 \expnd0\expndtw0\kerning0
+When we are deleting the overlapping access ids from ui and sending request with dates which don\'92t overlap it still sends validate and add\
+Request with those overlapping access ids\
+Ex : \
+There was 1 to 3 April of access already present\
+Then we requested 1 to 5 access, so validate api returned the overlapping access ids 1,2 and 3\
+But then we removed these dates from our req, and send only access request for 4 and 5 date\
+But still ui sends request with overlapping access id list as 1,2 and 3\
+And then again validate api is called, there is code which checks if there is no overlapping access ids for current date then, it won\'92t update\
+(115 line), the list and list stays same as overlapping ids as 1,2 and 3 which is wrong.\
+Possible solution : we can just update the if condition, and still update even if error bean is null, and set ids as empty\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs26 \cf3 \cb4 A3authConfiguration.java\
+Transaction.java\
+TransactionFactory.java}
